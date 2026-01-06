@@ -1,16 +1,12 @@
 """
-predict.py - Flask API for Fraud Detection Model
+predict.py - Flask API for Fraud Detection Model (Vercel Compatible)
 
 This script loads the trained XGBoost model and serves predictions
 via a REST API endpoint.
 
 Usage:
-    python predict.py
-
-Endpoints:
-    GET  /           - Home page with API info
-    GET  /health     - Health check
-    POST /predict    - Make a prediction
+    Local: python predict.py
+    Vercel: Deployed automatically
 """
 
 from flask import Flask, request, jsonify, render_template_string
@@ -21,24 +17,17 @@ import os
 app = Flask(__name__)
 
 # Load the trained model
-MODEL_PATH = 'xgb_model_2.pkl'
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'xgb_model_2.pkl')
 
+model = None
 try:
     with open(MODEL_PATH, 'rb') as f:
         model = pickle.load(f)
     print(f"Model loaded successfully from {MODEL_PATH}")
 except FileNotFoundError:
-    print(f"Warning: Model file {MODEL_PATH} not found. Please run train.py first.")
-    model = None
-
-# Expected features for the model
-EXPECTED_FEATURES = [
-    "account_id", "receiver_account_id", "transaction_amount", "account_age_days",
-    "daily_transaction_amount", "total_daily_transactions", "transaction_frequency",
-    "transaction_frequency_same_account",
-    "account_type_personal", "payment_type_debit",
-    "transaction_type_bank_transfer", "transaction_type_Deposit", "transaction_type_sporty"
-]
+    print(f"Warning: Model file not found at {MODEL_PATH}")
+except Exception as e:
+    print(f"Error loading model: {e}")
 
 # HTML template for home page
 HOME_PAGE = """
@@ -87,6 +76,7 @@ HOME_PAGE = """
             border-radius: 10px;
             overflow-x: auto;
             margin: 15px 0;
+            font-size: 0.85rem;
         }
         .endpoint { color: #00ff88; }
         .method { 
@@ -106,6 +96,7 @@ HOME_PAGE = """
             border-radius: 20px;
             font-weight: bold;
         }
+        .status.error { background: #ff4444; color: #fff; }
     </style>
 </head>
 <body>
@@ -117,7 +108,7 @@ HOME_PAGE = """
         
         <div class="card">
             <h2>API Status</h2>
-            <p>Model Status: <span class="status">✓ Loaded</span></p>
+            <p>Model Status: <span class="status {{ 'error' if not model_loaded else '' }}">{{ '✓ Loaded' if model_loaded else '✗ Not Loaded' }}</span></p>
         </div>
         
         <div class="card">
@@ -138,22 +129,14 @@ HOME_PAGE = """
         
         <div class="card">
             <h2>Example Request</h2>
-            <pre>curl -X POST https://your-app.vercel.app/predict \\
+            <pre>curl -X POST {{ host }}/predict \\
   -H "Content-Type: application/json" \\
   -d '{
-    "account_id": 12345,
-    "receiver_account_id": 67890,
     "transaction_amount": 5000.00,
     "account_age_days": 365,
     "daily_transaction_amount": 10000.00,
     "total_daily_transactions": 5,
-    "transaction_frequency": 2.5,
-    "transaction_frequency_same_account": 1,
-    "account_type_personal": 1,
-    "payment_type_debit": 1,
-    "transaction_type_bank_transfer": 1,
-    "transaction_type_Deposit": 0,
-    "transaction_type_sporty": 0
+    "transaction_frequency": 2.5
   }'</pre>
         </div>
         
@@ -162,8 +145,7 @@ HOME_PAGE = """
             <pre>{
   "prediction": 0,
   "result": "SAFE",
-  "message": "Transaction appears to be legitimate",
-  "confidence": "high"
+  "message": "Transaction appears to be legitimate"
 }</pre>
         </div>
     </div>
@@ -175,7 +157,8 @@ HOME_PAGE = """
 @app.route('/')
 def home():
     """Home page with API documentation."""
-    return render_template_string(HOME_PAGE)
+    host = request.host_url.rstrip('/')
+    return render_template_string(HOME_PAGE, model_loaded=(model is not None), host=host)
 
 
 @app.route('/health')
@@ -221,7 +204,6 @@ def predict():
         
         for col in bool_columns:
             if col in df.columns:
-                # Convert various boolean representations to int
                 df[col] = df[col].apply(lambda x: 1 if x in [True, 'True', 'true', 1, '1'] else 0)
         
         # Convert all columns to numeric
@@ -239,15 +221,13 @@ def predict():
             result = {
                 "prediction": int(prediction),
                 "result": "SAFE",
-                "message": "Transaction appears to be legitimate",
-                "confidence": "high"
+                "message": "Transaction appears to be legitimate"
             }
         else:
             result = {
                 "prediction": int(prediction),
                 "result": "FRAUD",
-                "message": "⚠️ ALERT! Transaction appears suspicious",
-                "confidence": "high"
+                "message": "⚠️ ALERT! Transaction appears suspicious"
             }
         
         return jsonify(result)
@@ -257,6 +237,9 @@ def predict():
             "error": f"Prediction failed: {str(e)}"
         }), 500
 
+
+# Vercel requires the app to be named 'app'
+# This is automatically detected by @vercel/python
 
 # For local development
 if __name__ == '__main__':
