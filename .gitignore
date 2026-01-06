@@ -1,1 +1,37 @@
+# Virtual environments
+venv/
+env/
+fraud_env/
 myenv/
+.env/
+.venv/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Model checkpoints (keep main model)
+# *.pkl  # Uncomment to ignore all pickle files
+
+# Large datasets (optional - uncomment if storing elsewhere)
+# *.csv
