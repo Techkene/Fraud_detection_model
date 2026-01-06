@@ -9,7 +9,7 @@ The solution uses an **XGBoost classifier** trained on transaction data to predi
 ### Key Features:
 - **REST API** via Flask for easy integration
 - **High accuracy** XGBoost model with SMOTE for class balancing
-- **Vercel deployment** ready with included configuration
+- **Cloud deployment** on Render
 
 ---
 
@@ -43,13 +43,13 @@ Fraud_detection_model/
 ├── dataset.csv            # Training dataset
 ├── requirements.txt       # Python dependencies
 ├── Dockerfile             # Container configuration
-├── vercel.json            # Vercel deployment config
+├── render.yaml            # Render deployment config
 └── .gitignore             # Git ignore rules
 ```
 
 ---
 
-## How to Run
+## How to Run Locally
 
 ### 1. Clone the Repository
 ```bash
@@ -57,7 +57,7 @@ git clone https://github.com/Techkene/Fraud_detection_model.git
 cd Fraud_detection_model
 ```
 
-### 2. Create Virtual Environment (Recommended)
+### 2. Create Virtual Environment
 ```bash
 python -m venv venv
 
@@ -74,16 +74,15 @@ pip install -r requirements.txt
 ```
 
 ### 4. Train the Model (Optional)
-If you want to retrain the model:
 ```bash
 python train.py
 ```
 
-### 5. Run the API Locally
+### 5. Run the API
 ```bash
 python predict.py
 ```
-The API will be available at `http://localhost:5000`
+Access at `http://localhost:5000`
 
 ---
 
@@ -98,22 +97,14 @@ The API will be available at `http://localhost:5000`
 ### Example Request
 
 ```bash
-curl -X POST http://localhost:5000/predict \
+curl -X POST https://your-app.onrender.com/predict \
   -H "Content-Type: application/json" \
   -d '{
-    "account_id": 12345,
-    "receiver_account_id": 67890,
     "transaction_amount": 5000.00,
     "account_age_days": 365,
     "daily_transaction_amount": 10000.00,
     "total_daily_transactions": 5,
-    "transaction_frequency": 2.5,
-    "transaction_frequency_same_account": 1,
-    "account_type_personal": 1,
-    "payment_type_debit": 1,
-    "transaction_type_bank_transfer": 1,
-    "transaction_type_Deposit": 0,
-    "transaction_type_sporty": 0
+    "transaction_frequency": 2.5
   }'
 ```
 
@@ -123,8 +114,7 @@ curl -X POST http://localhost:5000/predict \
 {
   "prediction": 0,
   "result": "SAFE",
-  "message": "Transaction appears to be legitimate",
-  "confidence": "high"
+  "message": "Transaction appears to be legitimate"
 }
 ```
 
@@ -132,31 +122,13 @@ curl -X POST http://localhost:5000/predict \
 
 ## Docker Deployment
 
-### Build the Docker Image
 ```bash
+# Build
 docker build -t fraud-detection .
-```
 
-### Run the Container
-```bash
+# Run
 docker run -p 5000:5000 fraud-detection
 ```
-
-Access the API at `http://localhost:5000`
-
----
-
-## Vercel Deployment
-
-### Deploy to Vercel
-
-1. Push your code to GitHub
-2. Go to [vercel.com](https://vercel.com) and sign in
-3. Click "New Project" and import your repository
-4. Vercel will auto-detect the `vercel.json` configuration
-5. Click "Deploy"
-
-🔗 **Live Demo**: [Add your Vercel URL here]
 
 ---
 
@@ -174,8 +146,6 @@ Access the API at `http://localhost:5000`
 ## Author
 
 **Techkene** - Data Scientist / ML Engineer
-
----
 
 ## License
 

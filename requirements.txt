@@ -13,6 +13,7 @@ seaborn>=0.13.0
 
 # Web Application
 flask>=3.0.0
+gunicorn>=21.0.0
 
 # Utilities
 tqdm>=4.65.0
