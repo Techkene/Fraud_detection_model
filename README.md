@@ -4,12 +4,12 @@
 
 Financial fraud costs institutions billions of dollars annually and affects millions of customers worldwide. This project develops a **machine learning-based fraud detection system** that analyzes transaction patterns to identify potentially fraudulent activities in real-time.
 
-The solution uses an **XGBoost classifier** trained on synthetic transaction data to predict whether a given transaction is fraudulent or legitimate. The model considers various features including transaction amount, account age, transaction frequency, and behavioral patterns.
+The solution uses an **XGBoost classifier** trained on transaction data to predict whether a given transaction is fraudulent or legitimate. The model considers various features including transaction amount, account age, transaction frequency, and behavioral patterns.
 
 ### Key Features:
-- **Real-time prediction** via Streamlit web interface
+- **REST API** via Flask for easy integration
 - **High accuracy** XGBoost model with SMOTE for class balancing
-- **Easy deployment** with Docker containerization
+- **Vercel deployment** ready with included configuration
 
 ---
 
@@ -38,11 +38,12 @@ Fraud_detection_model/
 ├── README.md              # Project documentation
 ├── notebook.ipynb         # EDA and model development
 ├── train.py               # Training script
-├── predict.py             # Streamlit web service
+├── predict.py             # Flask API service
 ├── xgb_model_2.pkl        # Trained XGBoost model
 ├── dataset.csv            # Training dataset
 ├── requirements.txt       # Python dependencies
 ├── Dockerfile             # Container configuration
+├── vercel.json            # Vercel deployment config
 └── .gitignore             # Git ignore rules
 ```
 
@@ -78,11 +79,54 @@ If you want to retrain the model:
 python train.py
 ```
 
-### 5. Run the Prediction Service
+### 5. Run the API Locally
 ```bash
-streamlit run predict.py
+python predict.py
 ```
-The app will open at `http://localhost:8501`
+The API will be available at `http://localhost:5000`
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Home page with API documentation |
+| GET | `/health` | Health check |
+| POST | `/predict` | Make a fraud prediction |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:5000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "account_id": 12345,
+    "receiver_account_id": 67890,
+    "transaction_amount": 5000.00,
+    "account_age_days": 365,
+    "daily_transaction_amount": 10000.00,
+    "total_daily_transactions": 5,
+    "transaction_frequency": 2.5,
+    "transaction_frequency_same_account": 1,
+    "account_type_personal": 1,
+    "payment_type_debit": 1,
+    "transaction_type_bank_transfer": 1,
+    "transaction_type_Deposit": 0,
+    "transaction_type_sporty": 0
+  }'
+```
+
+### Example Response
+
+```json
+{
+  "prediction": 0,
+  "result": "SAFE",
+  "message": "Transaction appears to be legitimate",
+  "confidence": "high"
+}
+```
 
 ---
 
@@ -95,25 +139,24 @@ docker build -t fraud-detection .
 
 ### Run the Container
 ```bash
-docker run -p 8501:8501 fraud-detection
+docker run -p 5000:5000 fraud-detection
 ```
 
-Access the app at `http://localhost:8501`
+Access the API at `http://localhost:5000`
 
 ---
 
-## Cloud Deployment
+## Vercel Deployment
 
-The model is deployed on **Streamlit Cloud**:
+### Deploy to Vercel
 
-🔗 **Live Demo**: [Add your Streamlit Cloud URL here]
-
-### Deploying to Streamlit Cloud:
 1. Push your code to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Connect your GitHub repository
-4. Select `predict.py` as the main file
-5. Deploy!
+2. Go to [vercel.com](https://vercel.com) and sign in
+3. Click "New Project" and import your repository
+4. Vercel will auto-detect the `vercel.json` configuration
+5. Click "Deploy"
+
+🔗 **Live Demo**: [Add your Vercel URL here]
 
 ---
 
@@ -125,30 +168,6 @@ The model is deployed on **Streamlit Cloud**:
 | Precision (Fraud) | ~93% |
 | Recall (Fraud) | ~94% |
 | F1-Score | ~93% |
-
----
-
-## Usage Example
-
-To make a prediction, upload a `.txt` file containing transaction data in JSON format:
-
-```json
-{
-    "account_id": 12345,
-    "receiver_account_id": 67890,
-    "transaction_amount": 5000.00,
-    "account_age_days": 365,
-    "daily_transaction_amount": 10000.00,
-    "total_daily_transactions": 5,
-    "transaction_frequency": 2.5,
-    "transaction_frequency_same_account": 1,
-    "account_type_personal": true,
-    "payment_type_debit": true,
-    "transaction_type_bank_transfer": true,
-    "transaction_type_Deposit": false,
-    "transaction_type_sporty": false
-}
-```
 
 ---
 

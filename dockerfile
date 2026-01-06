@@ -14,11 +14,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY predict.py .
 COPY xgb_model_2.pkl .
 
-# Expose port 8501 for Streamlit
-EXPOSE 8501
+# Expose port 5000 for Flask
+EXPOSE 5000
 
-# Health check
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+# Set environment variables
+ENV PORT=5000
 
-# Run the Streamlit app
-CMD ["streamlit", "run", "predict.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Run the Flask app
+CMD ["python", "predict.py"]
